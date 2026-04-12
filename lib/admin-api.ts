@@ -1,14 +1,12 @@
 import { getCookie } from '@/lib/cookies';
 import { safeStorage } from '@/lib/safe-storage';
 
-const API_URL = (typeof window !== 'undefined' && window.location.hostname !== 'localhost')
-    ? '/api'
-    : (process.env.NEXT_PUBLIC_BASE_URL ? `${process.env.NEXT_PUBLIC_BASE_URL}/api` : 'http://localhost:5000/api');
+const API_URL = '/api';
 
 // Tokens are now managed securely via HTTP-Only cookies
 // credentials: 'include' handles the transmission of the cookie automatically
 export const login = async (username: string, password: string) => {
-    const response = await fetch(`${API_URL}/admin/login`, {
+    const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -20,7 +18,7 @@ export const login = async (username: string, password: string) => {
 
 export const logout = async () => {
     try {
-        await fetch(`${API_URL}/admin/logout`, {
+        await fetch(`${API_URL}/auth/logout`, {
             method: 'POST',
             credentials: 'include'
         });
@@ -31,7 +29,7 @@ export const logout = async () => {
 
 export const verifyToken = async (token?: string | null) => {
     try {
-        const response = await fetch(`${API_URL}/admin/verify`, {
+        const response = await fetch(`${API_URL}/auth/verify`, {
             credentials: 'include'
         });
         if (!response.ok) return { valid: false };
