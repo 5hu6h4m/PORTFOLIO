@@ -1,0 +1,11 @@
+node_modules/
+.next/
+dist/
+build/
+.env*.local
+.vercel
+package-lock.json (if wanted)
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+temp_space_repo/

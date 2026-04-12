@@ -1,0 +1,44 @@
+{
+  "name": "spaceportfolio",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --names \"NEXT,BACKEND\" --prefix-colors \"cyan,yellow\" \"next dev\" \"cd backend && npm run dev\"",
+    "dev:next": "next dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.0.18",
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@vercel/analytics": "^1.2.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^10.16.4",
+    "lenis": "^1.1.5",
+    "lucide-react": "^0.284.0",
+    "matter-js": "^0.20.0",
+    "next": "16.1.6",
+    "next-themes": "^0.3.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-icons": "^4.11.0",
+    "tailwind-merge": "^2.3.0"
+  },
+  "devDependencies": {
+    "@react-three/drei": "^9.88.4",
+    "@react-three/fiber": "^8.15.4",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/matter-js": "^0.20.2",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
+    "tailwindcss": "4.1.18",
+    "three": "^0.157.0",
+    "typescript": "^5"
+  }
+}
