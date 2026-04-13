@@ -31,6 +31,18 @@ export async function GET() {
   const uri = repairUri(rawUri);
   const isRepaired = uri !== rawUri;
 
+  // Extract password for extreme debugging (masked safely)
+  let passLength = 0;
+  let passStart = '';
+  let passEnd = '';
+  
+  if (credentialMatch) {
+      const pass = credentialMatch[2];
+      passLength = pass.length;
+      passStart = pass[0];
+      passEnd = pass[pass.length - 1];
+  }
+
   // Mask URI for safe debugging
   const maskedUri = uri ? uri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'none';
   const hasDbName = uri.includes('/', uri.indexOf('://') + 3) && !uri.endsWith('/');
@@ -59,7 +71,9 @@ export async function GET() {
       uriInfo: {
         masked: maskedUri,
         hasDbName,
-        protocol: uri.split(':')[0]
+        isRepaired,
+        protocol: uri.split(':')[0],
+        passSummary: `${passStart}...${passEnd} (Length: ${passLength})`
       },
       debug: envVars
     });
@@ -67,8 +81,8 @@ export async function GET() {
     console.error('Debug DB Connection Error:', err.message);
     
     let advice = 'Check your MongoDB Atlas IP Whitelist (Allow 0.0.0.0/0)';
-    if (err.message.includes('Authentication failed') || err.message.includes('auth failed')) {
-      advice = 'Authentication failed. Please check your DATABASE PASSWORD in Vercel. Ensure special characters are URL-encoded if necessary.';
+    if (err.message.includes('Authentication failed') || err.message.includes('auth failed') || err.message.includes('bad auth')) {
+      advice = `PASSWORD ERROR: Your password starts with "${passStart}" and ends with "${passEnd}" (Total ${passLength} chars). PLEASE CHECK IF THIS IS CORRECT in Vercel!`;
     } else if (err.message.includes('ECONNREFUSED')) {
       advice = 'Connection refused. Ensure your Atlas cluster is active and accepting connections.';
     }
@@ -79,7 +93,9 @@ export async function GET() {
       uriInfo: {
         masked: maskedUri,
         hasDbName,
-        protocol: uri.split(':')[0]
+        isRepaired,
+        protocol: uri.split(':')[0],
+        passSummary: `${passStart}...${passEnd} (Length: ${passLength})`
       },
       debug: envVars,
       hint: advice
