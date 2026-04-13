@@ -31,6 +31,11 @@ export async function GET() {
   const uri = repairUri(rawUri);
   const isRepaired = uri !== rawUri;
 
+  // Extract credentials for diagnostics
+  const protocolMatch = rawUri.match(/^mongodb(?:\+srv)?:\/\//);
+  const afterProtocol = rawUri.substring(protocolMatch ? protocolMatch[0].length : 0);
+  const credentialMatch = afterProtocol.match(/^([^:]+):([^@]+)@(.*)$/);
+
   // Extract password for extreme debugging (masked safely)
   let passLength = 0;
   let passStart = '';
