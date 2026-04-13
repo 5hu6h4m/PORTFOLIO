@@ -33,12 +33,13 @@ function repairUri(rawUri: string) {
   return repaired;
 }
 
-const RAW_URI = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || '';
+const RAW_URI = (process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || '').trim();
 const MONGODB_URI = repairUri(RAW_URI);
 
-if (!MONGODB_URI) {
-  console.error('❌ MONGODB_URI is missing! Check your environment variables.');
-} else if (MONGODB_URI !== RAW_URI) {
+// Only log missing URI if we are not in the build phase (to avoid build log clutter)
+if (!MONGODB_URI && process.env.NEXT_PHASE !== 'phase-production-build') {
+  console.warn('⚠️ MONGODB_URI missing in local environment. This is normal during local build if not defined.');
+} else if (MONGODB_URI && MONGODB_URI !== RAW_URI) {
   console.log('🔧 Auto-repaired MongoDB connection string for special characters.');
 }
 
