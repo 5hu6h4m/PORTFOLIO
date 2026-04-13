@@ -3,8 +3,6 @@
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || ''
-
 export function Projects() {
     const [projects, setProjects] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -13,7 +11,7 @@ export function Projects() {
     useEffect(() => {
         const loadProjects = async () => {
             try {
-                const response = await fetch(`${BASE_URL}/api/projects?t=${Date.now()}`, { cache: 'no-store' })
+                const response = await fetch(`/api/projects`, { cache: 'no-store' })
                 if (!response.ok) throw new Error("Failed to fetch")
                 const data = await response.json()
                 setProjects(data)

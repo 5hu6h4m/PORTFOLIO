@@ -6,8 +6,6 @@ import { ChevronLeft, ChevronRight, ExternalLink, Award, FileText, CheckCircle2 
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
-
 interface Certificate {
     _id: string;
     title: string;
@@ -24,7 +22,7 @@ export function Certificates() {
   useEffect(() => {
     const loadCerts = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/api/certificates?t=${Date.now()}`, { cache: 'no-store' })
+        const response = await fetch(`/api/certificates`, { cache: 'no-store' })
         if (!response.ok) throw new Error("Failed to fetch")
         const data = await response.json()
         setCerts(data)

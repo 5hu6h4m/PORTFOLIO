@@ -11,8 +11,6 @@ interface ResumeButtonProps {
     className?: string;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || '';
-
 export function ResumeButton({ variant = 'default', className }: ResumeButtonProps) {
     const [resumeUrl, setResumeUrl] = useState<string>('');
     const [showOffline, setShowOffline] = useState(false);
@@ -30,7 +28,7 @@ export function ResumeButton({ variant = 'default', className }: ResumeButtonPro
 
     const handleAction = () => {
         if (resumeUrl) {
-            window.open(`${BASE_URL}${resumeUrl}`, '_blank');
+            window.open(resumeUrl, '_blank');
         } else {
             setShowOffline(true);
         }
