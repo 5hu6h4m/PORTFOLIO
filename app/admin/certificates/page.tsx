@@ -6,7 +6,7 @@ import { Plus, Trash2, Edit2, FileText, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import DeleteConfirmModal from '@/components/admin/DeleteConfirmModal';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || '';
+
 
 interface Certificate {
     _id?: string;
@@ -206,7 +206,7 @@ export default function CertificatesPage() {
                                                 </div>
                                             ) : (
                                                 <div className="relative group w-full h-32">
-                                                    <img src={typeof newCert.image === 'string' && newCert.image.startsWith('http') ? newCert.image : `${BASE_URL}${newCert.image}`} alt="Preview" className="w-full h-full rounded-lg object-contain bg-black/50 border border-white/10" />
+                                                    <img src={newCert.image} alt="Preview" className="w-full h-full rounded-lg object-contain bg-black/50 border border-white/10" />
                                                 </div>
                                             )}
                                             <button 
@@ -244,7 +244,7 @@ export default function CertificatesPage() {
                             {typeof cert.image === 'string' && cert.image.endsWith('.pdf') ? (
                                 <FileText className="text-primary/70 group-hover:scale-110 transition-transform duration-700" size={64} />
                             ) : (
-                                <img src={typeof cert.image === 'string' && cert.image.startsWith('http') ? cert.image : `${BASE_URL}${cert.image}`} alt={cert.title} className="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform duration-700" />
+                                <img src={cert.image} alt={cert.title} className="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform duration-700" />
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
                         </div>

@@ -14,7 +14,7 @@ interface AboutSettings {
   resumeUrl: string;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BASE_URL || '';
+
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<AboutSettings>({
@@ -32,7 +32,7 @@ export default function SettingsPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/settings/about-sections`);
+        const res = await fetch(`/api/settings/about-sections`);
         if (res.ok) {
           const data = await res.json();
           setSettings(data);
@@ -68,7 +68,7 @@ export default function SettingsPage() {
     setSaved(false);
     try {
       const token = safeStorage.getItem('adminToken');
-      const res = await fetch(`${BACKEND_URL}/api/settings/about-sections`, {
+      const res = await fetch(`/api/settings/about-sections`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

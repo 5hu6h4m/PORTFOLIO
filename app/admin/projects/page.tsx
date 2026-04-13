@@ -7,7 +7,7 @@ import { Plus, Trash2, Edit2, ExternalLink, Github } from 'lucide-react';
 import { motion } from 'framer-motion';
 import DeleteConfirmModal from '@/components/admin/DeleteConfirmModal';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || '';
+
 
 interface Project {
     _id?: string;
@@ -225,7 +225,7 @@ export default function ProjectsPage() {
                                     <input type="file" onChange={handleImageUpload} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" />
                                     {newProject.image && (
                                         <div className="relative group shrink-0">
-                                            <img src={newProject.image.startsWith('http') ? newProject.image : `${BASE_URL}${newProject.image}`} alt="Preview" className="h-16 w-24 rounded-lg object-cover border border-white/10" />
+                                            <img src={newProject.image} alt="Preview" className="h-16 w-24 rounded-lg object-cover border border-white/10" />
                                             <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 rounded-lg transition-opacity flex items-center justify-center pointer-events-none">
                                                 <span className="text-[10px] font-black text-black bg-primary px-2 py-1 rounded">PREVIEW</span>
                                             </div>
@@ -261,7 +261,7 @@ export default function ProjectsPage() {
                         className="bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 overflow-hidden flex flex-col sm:flex-row gap-6 p-6 group hover:border-primary/40 transition-all duration-500 shadow-xl"
                     >
                         <div className="relative w-full sm:w-48 h-48 rounded-2xl overflow-hidden shadow-2xl">
-                            <img src={project.image?.startsWith('http') ? project.image : `${BASE_URL}${project.image}`} alt={project.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
                         </div>
                         <div className="flex-1 flex flex-col justify-between py-2">
