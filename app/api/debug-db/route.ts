@@ -3,12 +3,13 @@ import mongoose from 'mongoose';
 
 export async function GET() {
   const envVars = {
+    hasMongodbUri: !!process.env.MONGODB_URI,
     hasMongoUri: !!process.env.MONGO_URI,
     hasMongoUrl: !!process.env.MONGO_URL,
     nodeEnv: process.env.NODE_ENV,
   };
 
-  const uri = process.env.MONGO_URI || process.env.MONGO_URL || '';
+  const uri = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || '';
 
   if (!uri) {
     return NextResponse.json({ 

@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGO_URI || process.env.MONGO_URL || '';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || '';
 
 if (!MONGODB_URI) {
-  console.error('❌ MONGODB_URI/URL is missing in environment variables!');
+  console.error('❌ MONGODB_URI is missing! Check your environment variables.');
 }
 
 /**
@@ -31,10 +31,13 @@ async function connectDB() {
 
     console.log('🔄 Initializing new MongoDB connection...');
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log('✅ MongoDB Connected successfully');
+      console.log('✅ MongoDB Connected successfully to:', MONGODB_URI.split('@')[1] || 'database');
       return mongoose;
     }).catch(err => {
       console.error('❌ MongoDB Connection failed:', err.message);
+      if (err.message.includes('ECONNREFUSED')) {
+        console.error('💡 HINT: Check if your IP is whitelisted in MongoDB Atlas.');
+      }
       throw err;
     });
   }

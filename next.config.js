@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  devIndicators: false,
+  devIndicators: {
+    appIsrStatus: false,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -8,7 +10,20 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    qualities: [75, 100],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      }
+    ],
   },
 }
 
