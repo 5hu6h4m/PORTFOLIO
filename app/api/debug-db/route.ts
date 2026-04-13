@@ -9,10 +9,18 @@ export async function GET() {
     nodeEnv: process.env.NODE_ENV,
   };
 
-  const uri = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || '';
+  let uri = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || '';
+  let normalized = false;
 
   // Mask URI for safe debugging
   const maskedUri = uri ? uri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'none';
+  
+  // Normalize (same logic as lib/mongodb.ts)
+  if (uri && !uri.includes('/', uri.indexOf('://') + 3)) {
+      normalized = true;
+      uri = uri.endsWith('/') ? uri + 'portfolio' : uri + '/portfolio';
+  }
+  
   const hasDbName = uri.includes('/', uri.indexOf('://') + 3) && !uri.endsWith('/');
 
   if (!uri) {
