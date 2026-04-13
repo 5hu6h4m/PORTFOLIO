@@ -1,6 +1,24 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 
+function repairUri(rawUri: string) {
+  if (!rawUri) return '';
+  const protocolMatch = rawUri.match(/^mongodb(?:\+srv)?:\/\//);
+  if (!protocolMatch) return rawUri;
+  const protocol = protocolMatch[0];
+  const afterProtocol = rawUri.substring(protocol.length);
+  const credentialMatch = afterProtocol.match(/^([^:]+):([^@]+)@(.*)$/);
+  if (!credentialMatch) return rawUri;
+  const [_, user, pass, rest] = credentialMatch;
+  let repaired = `${protocol}${encodeURIComponent(decodeURIComponent(user))}:${encodeURIComponent(decodeURIComponent(pass))}@${rest}`;
+  const hostPart = rest.split('?')[0];
+  if (!hostPart.includes('/')) {
+      if (repaired.includes('?')) repaired = repaired.replace('?', '/portfolio?');
+      else repaired = repaired + '/portfolio';
+  }
+  return repaired;
+}
+
 export async function GET() {
   const envVars = {
     hasMongodbUri: !!process.env.MONGODB_URI,
@@ -9,18 +27,12 @@ export async function GET() {
     nodeEnv: process.env.NODE_ENV,
   };
 
-  let uri = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || '';
-  let normalized = false;
+  const rawUri = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || '';
+  const uri = repairUri(rawUri);
+  const isRepaired = uri !== rawUri;
 
   // Mask URI for safe debugging
   const maskedUri = uri ? uri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'none';
-  
-  // Normalize (same logic as lib/mongodb.ts)
-  if (uri && !uri.includes('/', uri.indexOf('://') + 3)) {
-      normalized = true;
-      uri = uri.endsWith('/') ? uri + 'portfolio' : uri + '/portfolio';
-  }
-  
   const hasDbName = uri.includes('/', uri.indexOf('://') + 3) && !uri.endsWith('/');
 
   if (!uri) {

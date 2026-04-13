@@ -2,28 +2,48 @@ import mongoose from 'mongoose';
 
 let MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || '';
 
-// Normalize URI: Handle missing database name and common formatting issues
-if (MONGODB_URI) {
-  try {
-    const url = new URL(MONGODB_URI);
-    // If database name is missing (path is empty or just '/'), append 'portfolio'
-    if (url.pathname === '/' || !url.pathname) {
-      // For mongodb+srv we just append /portfolio, for legacy we need to be careful with options
-      if (MONGODB_URI.includes('?')) {
-        const parts = MONGODB_URI.split('?');
-        if (!parts[0].endsWith('/')) {
-           MONGODB_URI = parts[0] + '/portfolio?' + parts[1];
-        } else {
-           MONGODB_URI = parts[0] + 'portfolio?' + parts[1];
-        }
+// SMART REPAIR: In Next.js/Vercel, passwords with special characters (@, :, #, !) can break URIs.
+// This function extracts and encodes credentials to fix common Atlas connection failures.
+function repairUri(rawUri: string) {
+  if (!rawUri) return '';
+  
+  // 1. Identify the protocol and the rest of the string
+  const protocolMatch = rawUri.match(/^mongodb(?:\+srv)?:\/\//);
+  if (!protocolMatch) return rawUri;
+  
+  const protocol = protocolMatch[0];
+  const afterProtocol = rawUri.substring(protocol.length);
+  
+  // 2. Extract credentials and host
+  // Match pattern: [user]:[pass]@[host]
+  const credentialMatch = afterProtocol.match(/^([^:]+):([^@]+)@(.*)$/);
+  if (!credentialMatch) return rawUri;
+  
+  const [_, user, pass, rest] = credentialMatch;
+  
+  // 3. Rebuild with encoded credentials
+  let repaired = `${protocol}${encodeURIComponent(decodeURIComponent(user))}:${encodeURIComponent(decodeURIComponent(pass))}@${rest}`;
+  
+  // 4. Ensure database name exists (default to 'portfolio' if missing)
+  const hostPart = rest.split('?')[0];
+  if (!hostPart.includes('/')) {
+      if (repaired.includes('?')) {
+          repaired = repaired.replace('?', '/portfolio?');
       } else {
-        MONGODB_URI = MONGODB_URI.endsWith('/') ? MONGODB_URI + 'portfolio' : MONGODB_URI + '/portfolio';
+          repaired = repaired + '/portfolio';
       }
-      console.log('🔧 Normalized MongoDB URI: Added default database name "portfolio"');
-    }
-  } catch (e) {
-    console.warn('⚠️ Could not parse MONGODB_URI for normalization, using raw string');
   }
+  
+  return repaired;
+}
+
+const RAW_URI = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || '';
+const MONGODB_URI = repairUri(RAW_URI);
+
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI is missing! Check your environment variables.');
+} else if (MONGODB_URI !== RAW_URI) {
+  console.log('🔧 Auto-repaired MongoDB connection string for special characters.');
 }
 
 if (!MONGODB_URI) {
