@@ -1,33 +1,38 @@
 import mongoose from 'mongoose';
 
 function repairUri(rawUri: string) {
-  if (!rawUri) return '';
+  if (!rawUri || typeof rawUri !== 'string') return '';
   
-  // 1. Identify the protocol and the rest of the string
-  const protocolMatch = rawUri.match(/^mongodb(?:\+srv)?:\/\//);
-  if (!protocolMatch) return rawUri;
+  const trimmed = rawUri.trim();
+  const protocolMatch = trimmed.match(/^mongodb(?:\+srv)?:\/\//);
+  if (!protocolMatch) return trimmed;
   
   const protocol = protocolMatch[0];
-  const afterProtocol = rawUri.substring(protocol.length);
+  const body = trimmed.substring(protocol.length);
   
-  // 2. Extract credentials and host
-  // Match pattern: [user]:[pass]@[host]
-  const credentialMatch = afterProtocol.match(/^([^:]+):([^@]+)@(.*)$/);
-  if (!credentialMatch) return rawUri;
+  // Robust parsing: Credentials are everything before the LAST '@'
+  const lastAtIndex = body.lastIndexOf('@');
+  if (lastAtIndex === -1) return trimmed; // No credentials found
   
-  const [_, user, pass, rest] = credentialMatch;
+  const credentials = body.substring(0, lastAtIndex);
+  const hostAndRest = body.substring(lastAtIndex + 1);
   
-  // 3. Rebuild with encoded credentials
-  let repaired = `${protocol}${encodeURIComponent(decodeURIComponent(user))}:${encodeURIComponent(decodeURIComponent(pass))}@${rest}`;
+  // Split credentials by the FIRST ':'
+  const colonIndex = credentials.indexOf(':');
+  if (colonIndex === -1) return trimmed; // malformed credentials
   
-  // 4. Ensure database name exists (default to 'portfolio' if missing)
-  const hostPart = rest.split('?')[0];
+  const username = credentials.substring(0, colonIndex);
+  const password = credentials.substring(colonIndex + 1);
+  
+  // Rebuild with safe encoding
+  let repaired = `${protocol}${encodeURIComponent(decodeURIComponent(username))}:${encodeURIComponent(decodeURIComponent(password))}@${hostAndRest}`;
+  
+  // Ensure database target is 'portfolio' if none specified
+  const hostPart = hostAndRest.split('?')[0];
   if (!hostPart.includes('/')) {
-      if (repaired.includes('?')) {
-          repaired = repaired.replace('?', '/portfolio?');
-      } else {
-          repaired = repaired + '/portfolio';
-      }
+    repaired = repaired.includes('?') 
+      ? repaired.replace('?', '/portfolio?') 
+      : repaired + '/portfolio';
   }
   
   return repaired;
@@ -55,6 +60,11 @@ if (!cached) {
 }
 
 async function connectDB() {
+  if (!MONGODB_URI) {
+    console.error('❌ MONGODB_URI is missing from your environment variables. Connection aborted.');
+    return null;
+  }
+  
   if (cached.conn) {
     return cached.conn;
   }

@@ -41,15 +41,25 @@ export function SkillsPlayground() {
     const container = containerRef.current
     const canvas = canvasRef.current
     
-    // Responsive Sizing
+    // Responsive Sizing Logic
     const getLayout = () => {
-      const isMobile = window.innerWidth < 768
-      const viewportHeight = window.innerHeight
+      if (!containerRef.current) return { width: 360, height: 600, blockSize: 70, iconSize: 35, fontSize: 10 }
+      
+      const width = containerRef.current.clientWidth || window.innerWidth
+      const height = containerRef.current.clientHeight || 600
+      const isMobile = width < 768
+      
+      // Calculate dynamic block size based on screen dimensions
+      // Proportional scaling: approx 1/5th to 1/6th of screen width on mobile
+      const blockSize = isMobile 
+        ? Math.max(Math.min(width / 5.5, 75), 55) 
+        : 110
+      
       return {
-        width: container.clientWidth || (isMobile ? 360 : 1000),
-        height: isMobile ? Math.max(viewportHeight - 160, 500) : 600,
-        blockSize: isMobile ? 80 : 120,
-        iconSize: isMobile ? 42 : 60,
+        width,
+        height,
+        blockSize,
+        iconSize: blockSize * 0.55,
         fontSize: isMobile ? 10 : 13
       }
     }
@@ -122,9 +132,15 @@ export function SkillsPlayground() {
       imageCache[skill.image] = img
     })
 
-    // Spawn Logic
+    // Spawn Logic with protection for small viewports
     let spawnTimer: NodeJS.Timeout | null = null
     const spawnSkills = () => {
+      // Robustness: Don't spawn if container is not ready
+      if (!containerRef.current || containerRef.current.clientWidth < 50) {
+        setTimeout(spawnSkills, 100);
+        return;
+      }
+      
       const bodies = Composite.allBodies(engine.world)
       bodies.forEach(body => {
         if ((body as any).skill) Composite.remove(engine.world, body)
@@ -142,23 +158,24 @@ export function SkillsPlayground() {
           return
         }
 
-        for (let j = 0; j < 3 && i < fullSkills.length; j++) {
+        // Spawn in spreads to avoid clumping
+        for (let j = 0; j < (width < 500 ? 1 : 3) && i < fullSkills.length; j++) {
           const skill = fullSkills[i]
-          const x = Math.random() * (width - blockSize * 2) + blockSize
-          const y = 50 + (Math.random() * 100)
+          const x = (Math.random() * (width - blockSize)) + (blockSize / 2)
+          const y = -50 - (Math.random() * 200) // Spawn above the screen for gravity entry
           
           const body = Bodies.rectangle(x, y, blockSize, blockSize, {
-            chamfer: { radius: blockSize * 0.13 },
-            restitution: 0.4,
+            chamfer: { radius: blockSize * 0.15 },
+            restitution: 0.5,
             friction: 0.1,
-            frictionAir: 0.04,
+            frictionAir: 0.03,
           })
           
           ;(body as any).skill = skill
           Composite.add(engine.world, body)
           i++
         }
-      }, 100)
+      }, width < 500 ? 150 : 100)
     }
 
     Composite.add(engine.world, [floor, leftWall, rightWall, ceiling])
@@ -393,23 +410,49 @@ export function SkillsPlayground() {
       <div 
         ref={containerRef}
         className={cn(
-          "relative w-full h-[90dvh] md:h-[600px] border border-transparent rounded-2xl bg-[#050505] cursor-grab active:cursor-grabbing overflow-hidden transition-all duration-1000",
-          "shadow-[0_0_20px_rgba(0,245,212,0.02)]",
+          "relative w-full h-[85dvh] md:h-[650px] border border-white/5 rounded-3xl bg-[#030303] cursor-grab active:cursor-grabbing overflow-hidden transition-all duration-1000",
+          "shadow-2xl shadow-black",
           isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
         )}
       >
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full mix-blend-screen z-10" />
         
-        {/* Subtle Background Glow */}
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00f5d4]/5 blur-[120px] rounded-full" />
+        {/* Futuristic Grid Background */}
+        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+          <div className="absolute inset-0" 
+               style={{ 
+                 backgroundImage: `linear-gradient(to right, rgba(0, 245, 212, 0.1) 1px, transparent 1px), 
+                                   linear-gradient(to bottom, rgba(0, 245, 212, 0.1) 1px, transparent 1px)`,
+                 backgroundSize: '40px 40px' 
+               }} 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]" />
         </div>
 
-        {/* Subtle Background Text */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none select-none text-center w-full px-8 opacity-[0.03]">
-          <h2 className="text-[6rem] md:text-[12rem] font-black tracking-tighter text-[#00f5d4] uppercase select-none">
-            SKILLS
-          </h2>
+        {/* Dynamic Background Glows */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-[40%] h-[40%] bg-cyan-500/10 blur-[120px] rounded-full animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-[40%] h-[40%] bg-rose-500/5 blur-[120px] rounded-full delay-1000 animate-pulse" />
+        </div>
+
+        {/* Premium Background Text */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none select-none text-center w-full px-8">
+           <span className="text-[12vw] md:text-[15rem] font-black tracking-tighter text-white/[0.03] uppercase select-none leading-none block">
+             CORE
+           </span>
+           <span className="text-[10vw] md:text-[12rem] font-black tracking-tighter text-cyan-400/[0.02] uppercase select-none leading-none block -mt-4">
+             STACK
+           </span>
+        </div>
+
+        {/* HUD Navigation Help */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-none select-none flex flex-col items-center gap-2">
+            <span className="text-[10px] uppercase tracking-[0.3em] text-white/20 font-mono">Drag or Throw Icons</span>
+            <div className="flex gap-1">
+                <div className="w-8 h-1 rounded-full bg-white/5" />
+                <div className="w-8 h-1 rounded-full bg-[#00f5d4]/40" />
+                <div className="w-8 h-1 rounded-full bg-white/5" />
+            </div>
         </div>
 
         {/* HUD Overlay */}

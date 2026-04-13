@@ -2,19 +2,24 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 
 function repairUri(rawUri: string) {
-  if (!rawUri) return '';
-  const protocolMatch = rawUri.match(/^mongodb(?:\+srv)?:\/\//);
-  if (!protocolMatch) return rawUri;
+  if (!rawUri || typeof rawUri !== 'string') return '';
+  const trimmed = rawUri.trim();
+  const protocolMatch = trimmed.match(/^mongodb(?:\+srv)?:\/\//);
+  if (!protocolMatch) return trimmed;
   const protocol = protocolMatch[0];
-  const afterProtocol = rawUri.substring(protocol.length);
-  const credentialMatch = afterProtocol.match(/^([^:]+):([^@]+)@(.*)$/);
-  if (!credentialMatch) return rawUri;
-  const [_, user, pass, rest] = credentialMatch;
-  let repaired = `${protocol}${encodeURIComponent(decodeURIComponent(user))}:${encodeURIComponent(decodeURIComponent(pass))}@${rest}`;
-  const hostPart = rest.split('?')[0];
+  const body = trimmed.substring(protocol.length);
+  const lastAtIndex = body.lastIndexOf('@');
+  if (lastAtIndex === -1) return trimmed;
+  const credentials = body.substring(0, lastAtIndex);
+  const hostAndRest = body.substring(lastAtIndex + 1);
+  const colonIndex = credentials.indexOf(':');
+  if (colonIndex === -1) return trimmed;
+  const username = credentials.substring(0, colonIndex);
+  const password = credentials.substring(colonIndex + 1);
+  let repaired = `${protocol}${encodeURIComponent(decodeURIComponent(username))}:${encodeURIComponent(decodeURIComponent(password))}@${hostAndRest}`;
+  const hostPart = hostAndRest.split('?')[0];
   if (!hostPart.includes('/')) {
-      if (repaired.includes('?')) repaired = repaired.replace('?', '/portfolio?');
-      else repaired = repaired + '/portfolio';
+    repaired = repaired.includes('?') ? repaired.replace('?', '/portfolio?') : repaired + '/portfolio';
   }
   return repaired;
 }
