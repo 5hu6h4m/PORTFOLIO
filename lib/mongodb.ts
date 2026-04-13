@@ -1,9 +1,5 @@
 import mongoose from 'mongoose';
 
-let MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL || '';
-
-// SMART REPAIR: In Next.js/Vercel, passwords with special characters (@, :, #, !) can break URIs.
-// This function extracts and encodes credentials to fix common Atlas connection failures.
 function repairUri(rawUri: string) {
   if (!rawUri) return '';
   
@@ -44,10 +40,6 @@ if (!MONGODB_URI) {
   console.error('❌ MONGODB_URI is missing! Check your environment variables.');
 } else if (MONGODB_URI !== RAW_URI) {
   console.log('🔧 Auto-repaired MongoDB connection string for special characters.');
-}
-
-if (!MONGODB_URI) {
-  console.error('❌ MONGODB_URI is missing! Check your environment variables.');
 }
 
 /**
